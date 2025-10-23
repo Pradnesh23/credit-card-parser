@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 # Copy application code
 COPY backend/ ./
 
-EXPOSE 2999
+EXPOSE 3000
 
 # Run the Flask app with gunicorn for production
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:2999", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:3000", "app:app"]
