@@ -11,7 +11,9 @@ const CreditCardParser = () => {
   const [history, setHistory] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  const API_URL = window.location.origin.includes('localhost') 
+    ? 'http://localhost:3000' 
+    : 'http://credit-card-parser-xo-dduk1si.hello-xo.nl:3000';
 
   const loadHistory = async () => {
     try {
