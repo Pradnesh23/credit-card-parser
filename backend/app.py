@@ -22,6 +22,13 @@ import platform
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy", "service": "credit-card-parser-backend"}), 200
+
 # Configure Tesseract
 if platform.system() == 'Windows':
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
