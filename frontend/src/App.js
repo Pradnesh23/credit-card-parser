@@ -11,7 +11,7 @@ const CreditCardParser = () => {
   const [history, setHistory] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
 
-  const API_URL = 'http://localhost:5000';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:2999';
 
   const loadHistory = async () => {
     try {
@@ -129,7 +129,7 @@ const CreditCardParser = () => {
   };
 
   const deleteRecord = async (recordId) => {
-    if (!confirm('Are you sure you want to delete this record and its CSV file?')) {
+    if (!window.confirm('Are you sure you want to delete this record and its CSV file?')) {
       return;
     }
 
