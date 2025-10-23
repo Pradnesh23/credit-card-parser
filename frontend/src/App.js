@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, CreditCard, Calendar, FileText, CheckCircle, XCircle, AlertCircle, Loader2, Download, FolderOpen, BarChart3, TrendingUp, Shield, Zap, Eye, Target, Activity, Trash2 } from 'lucide-react';
 
 const CreditCardParser = () => {
@@ -11,11 +11,11 @@ const CreditCardParser = () => {
   const [history, setHistory] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
 
-  const API_URL = window.location.origin.includes('localhost') 
-    ? 'http://localhost:3000' 
-    : 'http://credit-card-parser-xo-dduk1si.hello-xo.nl:3000';
+  // Use environment variable or fallback to localhost
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  const loadHistory = async () => {
+  // Wrap loadHistory in useCallback to fix the useEffect dependency warning
+  const loadHistory = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/history?limit=25`);
       if (!res.ok) return;
@@ -24,11 +24,11 @@ const CreditCardParser = () => {
     } catch (_) {
       // ignore
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [loadHistory]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -254,7 +254,7 @@ const CreditCardParser = () => {
             <span className="px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-sm font-semibold shadow-sm">SBI Card</span>
           </div>
           </div>
-
+          
         {/* Error Display */}
         {error && (
           <div className="max-w-2xl mx-auto mb-6">

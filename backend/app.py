@@ -22,24 +22,6 @@ import platform
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-@app.route('/')
-def root():
-    logger.info("Root endpoint called")
-    return jsonify({"status": "ok", "service": "credit-card-parser-backend"}), 200
-
-@app.route('/health')
-def health_check():
-    logger.info("Health check endpoint called")
-    return jsonify({"status": "healthy", "service": "credit-card-parser-backend"}), 200
-
-@app.before_request
-def log_request_info():
-    logger.info('Headers: %s', request.headers)
-    logger.info('Body: %s', request.get_data())
-
 # Configure Tesseract
 if platform.system() == 'Windows':
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -958,4 +940,4 @@ def health_check():
 
 if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0', port=3000)
+    app.run(host='0.0.0.0',debug=True, port=5000)

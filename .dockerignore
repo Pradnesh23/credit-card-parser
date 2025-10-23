@@ -1,0 +1,15 @@
+**/venv
+**/backend/venv
+**/node_modules
+**/frontend/node_modules
+backend/exports
+.git
+.gitignore
+*.pyc
+__pycache__
+*.log
+*.db
+*.sqlite3
+build
+dist
+*.egg-info
