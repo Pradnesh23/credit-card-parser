@@ -1,76 +1,20 @@
 # Credit Card Statement Parser
 
-A full-stack application that extracts and analyzes credit card statements from PDFs using advanced OCR processing.
+A full-stack application that extracts and analyzes credit card statements from PDFs using advanced OCR processing and AI-powered parsing.
 
 ## ✨ Features
 
-- **Multi-Bank Support**: Parses statements from major banks including Capital One, American Express, ICICI, Kotak, HDFC, and SBI
+- **Multi-Bank Support**: Parses statements from Capital One, American Express, ICICI, Kotak Mahindra, HDFC Bank, and SBI Card
 - **Smart OCR Processing**: Advanced text extraction with auto-rotation and multi-strategy preprocessing
 - **Transaction Analysis**: Automatic categorization and spending insights
 - **Export Options**: Export to CSV with transaction details and master logs
 - **Modern Web Interface**: Responsive design with drag-and-drop upload
+- **History Management**: View, download, and delete previously parsed statements
+- **Confidence Scoring**: Quality assessment for all extracted data
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
-- Python 3.8+
-- Node.js 16+
-- Tesseract OCR
-- SQLite (for local development)
-
-### Installation
-
-1. **Backend Setup**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-2. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-### Running Locally
-
-1. Start the backend:
-   ```bash
-   cd backend
-   python app.py
-   ```
-
-2. In a new terminal, start the frontend:
-   ```bash
-   cd frontend
-   npm start
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## 🛠️ Tech Stack
-
-- **Backend**: Python, Flask, Tesseract OCR, OpenCV
-- **Frontend**: React, Tailwind CSS, Lucide Icons
-- **Database**: SQLite
-- **PDF Processing**: PyPDFium2
-
-## 📄 Supported Statement Formats
-
-- PDF statements from major credit card issuers
-- Both single and multi-page statements
-- Scanned documents with automatic image enhancement
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-- **Advanced Processing Details**: View OCR metadata and validation results
-- **Beautiful Gradients**: Modern, professional interface design
-
-## Prerequisites
 
 - **Python 3.9+**
 - **Node.js 14+**
@@ -80,45 +24,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - macOS: `brew install tesseract`
   - Ubuntu/Debian: `sudo apt install tesseract-ocr`
 
-## Setup
+### Installation
 
-### Backend Setup
-
-1. Navigate to the backend directory:
+1. **Backend Setup**
    ```bash
    cd backend
-   ```
-
-2. Create and activate a virtual environment:
-   ```bash
-   # Windows
    python -m venv venv
+   # On Windows
    .\venv\Scripts\activate
-
-   # macOS/Linux
-   python3 -m venv venv
+   # On macOS/Linux
    source venv/bin/activate
-   ```
-
-3. Install required Python packages:
-   ```bash
+   
    pip install -r requirements.txt
    ```
 
-4. Verify Tesseract installation:
+2. **Frontend Setup**
    ```bash
-   tesseract --version
-   ```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-
-2. Install Node.js packages:
-   ```bash
+   cd frontend
    npm install
    ```
 
@@ -142,6 +64,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
    The frontend will automatically open in your browser at `http://localhost:3000`
 
+## 🛠️ Tech Stack
+
+### Backend
+- **Python** 3.9+
+- **Flask** 3.0.0 - Web framework
+- **Flask-CORS** 4.0.0 - Cross-origin resource sharing
+- **PyPDFium2** 4.26.0 - PDF rendering at 300 DPI
+- **Tesseract OCR** 0.3.13 - Optical character recognition
+- **OpenCV** 4.10.0.84 (headless) - Image processing
+- **NumPy** 2.1.3 - Numerical computing
+- **Pillow** 10.1.0 - Image manipulation
+- **SQLite** - Local database for history
+
+### Frontend
+- **React** 19.2.0 - UI library
+- **Tailwind CSS** 3.3.0 - Utility-first CSS framework
+- **Lucide React** 0.546.0 - Icon library
+- **React Scripts** 5.0.1 - Build tooling
+
 ## Usage Guide
 
 ### Parsing a Statement
@@ -151,16 +92,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    - Click the upload area to browse and select a PDF file
 
 2. **Process**: Click the "Parse Statement" button
-   - The AI will automatically detect the card issuer
-   - Multiple OCR strategies will be tested
-   - Best results will be automatically selected
+   - The system will automatically detect the card issuer
+   - Multiple OCR strategies will be tested (enhanced_pro, aggressive, comprehensive, light)
+   - Best results will be automatically selected based on quality scores
 
 3. **Review**: View the extracted information including:
    - Card details (issuer, last 4 digits)
    - Important dates (statement date, payment due date)
    - Financial summary (total balance, minimum payment)
    - Complete transaction list with categories
-   - Spending analysis by category
+   - Spending analysis by category (Food & Dining, Gas & Transportation, Shopping, Entertainment, Healthcare, Other)
    - OCR confidence scores and validation results
 
 4. **Export**: Download your data in multiple formats:
@@ -192,6 +133,8 @@ The parser supports the following banks with specialized extraction patterns:
 | **HDFC Bank** | INR (Rs) | Times Card support, multiple date formats |
 | **SBI Card** | INR (Rs) | State Bank formats, Indian date patterns |
 
+**Note**: The parser automatically detects the card issuer and applies appropriate patterns.
+
 ## How It Works
 
 ### Processing Pipeline
@@ -203,12 +146,12 @@ The parser supports the following banks with specialized extraction patterns:
 2. **OCR Processing**
    - PDF pages rendered at 300 DPI with `pypdfium2`
    - Multiple preprocessing strategies applied:
-     - **Enhanced Pro**: Maximum quality with bilateral filtering, aggressive denoising, CLAHE enhancement, sharpening, and combined adaptive thresholding
-     - **Aggressive**: Dense text optimization with strong denoising
-     - **Comprehensive**: Balanced approach with morphological operations
-     - **Light**: Fast processing for high-quality scans
-   - Auto-rotation and deskewing applied
-   - Best strategy automatically selected based on quality scores
+     - **Enhanced Pro**: Maximum quality with bilateral filtering, aggressive denoising, CLAHE enhancement (clipLimit=4.0), sharpening, and combined adaptive thresholding. Tests multiple PSM modes (6, 4, 3)
+     - **Aggressive**: Dense text optimization with strong denoising (h=15)
+     - **Comprehensive**: Balanced approach with morphological operations and Otsu thresholding
+     - **Light**: Fast processing for high-quality scans with CLAHE (clipLimit=2.0)
+   - Auto-rotation based on HoughLinesP edge detection
+   - Smart early exit when excellent quality is achieved (score > 0.90 AND length > 1000)
 
 3. **Data Extraction**
    - Unified parser with bank-specific patterns
@@ -218,10 +161,10 @@ The parser supports the following banks with specialized extraction patterns:
    - Transaction extraction with deduplication
 
 4. **Validation & Scoring**
-   - Cross-field validation (date consistency, transaction proximity)
-   - Confidence scoring for each field
-   - Overall quality assessment
-   - Validation messages for detected issues
+   - Field-level validation (card number format, date format, amount format)
+   - Confidence scoring for each field (card_last_4, statement_date, payment_due_date, total_balance, transactions)
+   - Overall quality assessment as average of field scores
+   - Transaction count-based scoring (minimum 10 for full score)
 
 5. **Storage & Export**
    - Data saved to SQLite database
@@ -245,7 +188,28 @@ The parser supports the following banks with specialized extraction patterns:
 Upload and parse a PDF credit card statement.
 
 **Request**: Multipart form data with `file` field containing PDF
-**Response**: Parsed data with CSV file paths, confidence scores, and validation results
+**Response**: JSON with parsed data, CSV file paths, confidence scores, and validation results
+```json
+{
+  "success": true,
+  "data": {
+    "card_issuer": "Capital One",
+    "card_last_4": "1234",
+    "statement_date": "12/26/2023",
+    "payment_due_date": "01/15/2024",
+    "total_balance": "1,234.56",
+    "minimum_payment": "123.45",
+    "transactions": [...],
+    "confidence_scores": {...},
+    "extraction_metadata": {...},
+    "csv_exports": {
+      "simple": "path/to/simple.csv",
+      "detailed": "path/to/detailed.csv",
+      "master": "path/to/master.csv"
+    }
+  }
+}
+```
 
 ### `GET /api/download-csv/<filename>`
 Download a generated CSV file.
@@ -257,13 +221,34 @@ Download a generated CSV file.
 Retrieve parsing history.
 
 **Query Parameters**: `limit` - Maximum number of records (default: 20)
-**Response**: Array of parse records with metadata
+**Response**: JSON with array of parse records
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "created_at": "2024-01-01 12:00:00",
+      "issuer": "Capital One",
+      "card_last_4": "1234",
+      "statement_date": "12/26/2023",
+      "total_balance": "1,234.56",
+      "csv_exports": {...}
+    }
+  ]
+}
+```
 
 ### `DELETE /api/history/<record_id>`
 Delete a parse history record and associated CSV files.
 
 **Parameters**: `record_id` - Database ID of the record
 **Response**: Success confirmation
+```json
+{
+  "success": true,
+  "message": "Record deleted successfully"
+}
+```
 
 ### `GET /health`
 Health check and system information.
@@ -295,17 +280,22 @@ credit-card-parser/
 
 ### Backend Architecture
 - **Unified Parser**: Single parser class handles all bank formats
-- **Pattern Library**: Centralized regex patterns with currency awareness
-- **Multi-Strategy OCR**: Four preprocessing strategies with automatic selection
-- **Quality Scoring**: Sophisticated text quality assessment
-- **Validation Framework**: Cross-field consistency checks
+- **Pattern Library**: Centralized regex patterns with currency awareness (USD, GBP, INR)
+- **Multi-Strategy OCR**: Four preprocessing strategies with automatic selection and early exit
+- **Quality Scoring**: Sophisticated text quality assessment based on alphanumeric density, currency patterns, dates, and keywords
+- **Validation Framework**: Field-level validation with confidence scoring
+- **Enhanced Pro Mode**: Maximum quality extraction with multiple PSM modes (6, 4, 3)
+- **Auto-Rotation**: HoughLinesP-based automatic rotation correction
 
 ### Frontend Features
-- **React Hooks**: Modern functional components with state management
+- **React 19**: Modern functional components with hooks
 - **Lucide Icons**: Beautiful, consistent iconography
 - **Tailwind CSS**: Utility-first styling with custom gradients
 - **Drag-and-Drop**: Native file upload with visual feedback
 - **Responsive Design**: Mobile-first approach with breakpoints
+- **Transaction Categorization**: Automatic categorization into 6 categories
+- **Confidence Visualization**: Color-coded confidence indicators
+- **History Management**: View, download, and delete previously parsed statements
 
 ## Limitations & Considerations
 
@@ -316,6 +306,8 @@ credit-card-parser/
 - **Tesseract Required**: Must be installed for scanned PDF processing
 - **Currency Detection**: Automatically handles USD, GBP, and INR based on bank
 - **Transaction Limits**: Extracts up to 100 transactions per statement
+- **Pattern Matching**: Uses regex patterns; may miss non-standard formats
+- **Date Formats**: Supports multiple date formats but may struggle with ambiguous dates
 
 ## Troubleshooting
 
@@ -338,21 +330,24 @@ credit-card-parser/
 ### Frontend Issues
 
 **CORS errors**
+- Backend uses Flask-CORS 4.0.0 with permissive settings for development
 - Ensure backend is running on port 5000
-- Check Flask-CORS is installed: `pip install flask-cors`
+- Check `API_URL` in environment variables or fallback to localhost
 
 **CSV download fails**
 - Verify `exports/` directory exists in backend
 - Check file permissions
 - Ensure backend is accessible
+- File paths are automatically sanitized with `secure_filename`
 
 ## Performance Optimization
 
-- **Enhanced Pro Mode**: Used for poor-quality scans, highest accuracy
-- **Early Exit**: Stops testing strategies when excellent results achieved
-- **Smart Strategy Order**: Tests best strategies first
-- **Caching**: Results stored in database for quick access
-- **Batch Processing**: Multiple PSM modes tested in Enhanced Pro
+- **Enhanced Pro Mode**: Used for poor-quality scans, highest accuracy with bilateral filtering
+- **Early Exit**: Stops testing strategies when excellent results achieved (score > 0.90 AND length > 1000)
+- **Smart Strategy Order**: Tests enhanced_pro → aggressive → comprehensive → light
+- **Database Caching**: Results stored in SQLite for quick access
+- **Batch PSM Testing**: Multiple PSM modes (6, 4, 3) tested in Enhanced Pro and Aggressive modes
+- **Quality Threshold**: Continues testing if extracted text is too short (< 500 chars)
 
 ## Security Notes
 
@@ -364,14 +359,17 @@ credit-card-parser/
 
 ## Future Enhancements
 
-- [ ] Support for more banks (Citibank, Chase, etc.)
-- [ ] Multi-language support
-- [ ] Cloud storage integration
-- [ ] Advanced analytics and visualizations
+- [ ] Support for more banks (Citibank, Chase, Discover, etc.)
+- [ ] Multi-language support for non-English statements
+- [ ] Cloud storage integration (AWS S3, Google Drive)
+- [ ] Advanced analytics and visualizations (charts, trends)
 - [ ] Email statement import
 - [ ] Mobile app version
 - [ ] Batch processing multiple PDFs
 - [ ] Custom export templates
+- [ ] Automated categorization using ML
+- [ ] Budget tracking and alerts
+- [ ] Export to Excel with formatting
 
 ## Contributing
 
@@ -400,5 +398,16 @@ This project is open source and available under the MIT License.
 **Version**: 5.0-optimized  
 **Last Updated**: 2024  
 **Status**: Production Ready
+
+## Key Improvements in Version 5.0
+
+- Unified parser architecture with reduced code duplication
+- Enhanced Pro mode for maximum OCR quality
+- Smart early exit optimization (tests strategies in order: enhanced_pro → aggressive → comprehensive → light)
+- Multiple PSM mode testing (6, 4, 3) for better text extraction
+- Centralized pattern library with currency awareness
+- Improved date normalization and validation
+- Quality scoring with automatic strategy selection
+- Transaction deduplication and categorization
 
 For questions, issues, or feature requests, please open an issue on GitHub.

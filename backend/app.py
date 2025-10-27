@@ -26,10 +26,52 @@ logger = logging.getLogger(__name__)
 if platform.system() == 'Windows':
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 else:
-    pytesseract.pytesseract.tesseract_cmd = '/usr/local/bin/tesseract'
+    # Check multiple possible locations
+    possible_paths = [
+        '/usr/bin/tesseract',        # Debian/Ubuntu package location
+        '/usr/local/bin/tesseract',  # Built from source location
+    ]
+    
+    tesseract_found = False
+    for path in possible_paths:
+        if Path(path).exists():
+            pytesseract.pytesseract.tesseract_cmd = path
+            tesseract_found = True
+            logger.info(f"Tesseract found at: {path}")
+            break
+    
+    if not tesseract_found:
+        logger.warning("Tesseract not found in standard locations, using default PATH")
 
 app = Flask(__name__)
-CORS(app)
+
+# Enable CORS for all routes
+# Allow specific production frontend as well as all origins for development
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://credit-card-parser-front-xo-10dhpst.hello-xo.nl",
+            "http://localhost:3000",
+            "http://localhost:5000",
+            "*"  # Allow all origins as fallback
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["*"],  # Allow all headers
+        "supports_credentials": True,
+        "expose_headers": ["*"],
+        "max_age": 3600  # 1 hour
+    }
+})
+
+@app.after_request
+def after_request(response):
+    """Add security headers to all responses"""
+    # CORS headers are handled by Flask-CORS automatically
+    # Just add security headers
+    response.headers.add('X-Content-Type-Options', 'nosniff')
+    response.headers.add('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.add('X-XSS-Protection', '1; mode=block')
+    return response
 
 EXPORTS_DIR = Path('exports')
 EXPORTS_DIR.mkdir(exist_ok=True)
@@ -937,7 +979,12 @@ def health_check():
         'exports_directory': str(EXPORTS_DIR.absolute())
     })
 
+@app.route('/', methods=['OPTIONS'])
+def options_handler():
+    """Handle OPTIONS preflight requests"""
+    return '', 200
+
 
 if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0',debug=True, port=5000)
+    app.run(host='0.0.0.0',debug=False, port=5000)

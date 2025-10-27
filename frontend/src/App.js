@@ -11,18 +11,33 @@ const CreditCardParser = () => {
   const [history, setHistory] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Use environment variable or fallback to localhost
+  // Use environment variable for API URL with fallback to localhost for development
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Wrap loadHistory in useCallback to fix the useEffect dependency warning
   const loadHistory = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/history?limit=25`);
-      if (!res.ok) return;
+      console.log('Fetching history from:', `${API_URL}/api/history`);
+      const res = await fetch(`${API_URL}/api/history?limit=25`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to load history. Status:', res.status, 'Response:', errorText);
+        return;
+      }
+      
       const data = await res.json();
+      console.log('History data received:', data);
       setHistory(Array.isArray(data.items) ? data.items : []);
-    } catch (_) {
-      // ignore
+    } catch (err) {
+      console.error('Error loading history:', err);
+      setError(`Error loading history: ${err.message}`);
     }
   }, [API_URL]);
 
@@ -81,23 +96,36 @@ const CreditCardParser = () => {
     const formData = new FormData();
     formData.append('file', file);
 
+    console.log('Sending file to:', `${API_URL}/api/parse`);
+    
     try {
       const response = await fetch(`${API_URL}/api/parse`, {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type header when using FormData
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+      }
 
-      if (response.ok && data.success) {
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (data.success) {
         setResult(data.data);
         setCsvFiles(data.data.csv_exports);
-        loadHistory(); // Refresh history after successful parse
+        await loadHistory();
       } else {
-        setError(data.error || 'Failed to parse statement');
+        throw new Error(data.error || 'Failed to parse statement');
       }
     } catch (err) {
-      setError('Network error. Make sure the backend server is running on port 5000.');
+      console.error('API Error:', err);
+      setError(`Error: ${err.message || 'Failed to process the statement. Please try again.'}`);
     } finally {
       setLoading(false);
     }
