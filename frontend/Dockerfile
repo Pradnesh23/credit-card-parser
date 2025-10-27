@@ -1,7 +1,5 @@
-# Frontend Dockerfile (Development)
-
-# Use Node.js 18 as base image
-FROM node:18-alpine
+# Frontend Dockerfile (Production)
+FROM node:18-alpine AS build
 
 # Install libc6-compat for compatibility
 RUN apk add --no-cache libc6-compat
@@ -12,14 +10,18 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install all dependencies (including dev dependencies for npm run dev)
+# Install dependencies
 RUN npm ci
 
 # Copy the rest of the application
 COPY . .
 
-# Expose the development server port
-EXPOSE 3000
+# Build the application
+RUN npm run build
 
-# Run the development server
-CMD ["npm", "start"]
+# Production server
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
